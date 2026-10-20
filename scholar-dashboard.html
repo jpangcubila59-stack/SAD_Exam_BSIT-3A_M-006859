@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scholar Portal | Scholarship Compliance System</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="dashboard-shell" data-role="scholar">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">Scholarship Compliance System</p>
+        <h1>Scholar Portal</h1>
+        <p class="dashboard-subtitle" id="welcome-message">Track your scholarship requirements and compliance</p>
+      </div>
+      <button class="btn btn-outline signout-button" type="button" data-signout>Sign out</button>
+    </header>
+
+    <nav class="dashboard-nav" aria-label="Scholar pages">
+      <a href="?page=dashboard" data-page-link="dashboard">Dashboard</a>
+      <a href="?page=submit" data-page-link="submit">Submit Requirements</a>
+      <a href="?page=submissions" data-page-link="submissions">My Submissions</a>
+      <a href="?page=compliance" data-page-link="compliance">My Compliance</a>
+      <a href="?page=renewal" data-page-link="renewal">Renewal Status</a>
+      <a href="?page=notifications" data-page-link="notifications">Notifications</a>
+      <a href="?page=profile" data-page-link="profile">My Profile</a>
+    </nav>
+
+    <p id="dashboard-message" class="dashboard-message" role="status" aria-live="polite"></p>
+
+    <section class="dashboard-page" data-page="dashboard" aria-labelledby="scholar-dashboard-heading">
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Overview</p><h2 id="scholar-dashboard-heading">Dashboard</h2>
+        <p>Your assigned scholarship and latest semester status.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div class="scholar-overview-grid">
+        <article class="dashboard-panel overview-card"><span class="overview-label">Assigned scholarship</span><strong id="overview-program">Loading…</strong><span id="overview-deadline" class="overview-note"></span></article>
+        <article class="dashboard-panel overview-card"><span class="overview-label">Latest compliance</span><strong id="overview-compliance">—</strong><span id="overview-gwa" class="overview-note">Latest GWA: —</span></article>
+        <article class="dashboard-panel overview-card"><span class="overview-label">Latest verification</span><strong id="overview-verification">—</strong><span id="overview-units" class="overview-note">Completed units: —</span></article>
+        <article class="dashboard-panel overview-card"><span class="overview-label">Renewal status</span><strong id="overview-renewal">—</strong><span id="overview-pending" class="overview-note">No pending action</span></article>
+      </div>
+      <section class="dashboard-panel">
+        <div class="panel-heading"><div><h2>Next steps</h2><p>Keep your scholarship record current.</p></div></div>
+        <div class="quick-links">
+          <a class="quick-link" href="?page=submit"><strong>Submit semester requirements</strong><span>Enter your academic summary and evidence reference.</span></a>
+          <a class="quick-link" href="?page=submissions"><strong>Track your submissions</strong><span>Check verification feedback and prior records.</span></a>
+          <a class="quick-link" href="?page=renewal"><strong>Check renewal status</strong><span>Review the latest staff decision and notes.</span></a>
+        </div>
+      </section>
+    </section>
+
+    <section class="dashboard-page" data-page="submit" aria-labelledby="submit-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Requirements</p><h2 id="submit-heading">Submit Requirements</h2>
+        <p>Submit an academic summary and grade-document reference for one semester.</p></div></div>
+      <section class="dashboard-panel">
+        <form id="submission-form" class="dashboard-form">
+          <label>Scholarship program<input id="scholar-program" type="text" list="scholar-program-options" required autocomplete="off" placeholder="Type or choose a program"></label>
+          <datalist id="scholar-program-options"></datalist>
+          <label>Academic year<input name="academic_year" type="text" required maxlength="20" value="2026-2027" placeholder="2026-2027"></label>
+          <label>Semester<select name="semester" required><option value="1">Semester 1</option><option value="2">Semester 2</option><option value="3">Summer</option></select></label>
+          <label>GWA (1.00–5.00)<input name="gwa" type="number" min="1" max="5" step="0.01" required placeholder="1.75"></label>
+          <label>Completed units<input name="enrolled_units" type="number" min="0" step="1" required placeholder="18"></label>
+          <label>Failed subjects<input name="failed_count" type="number" min="0" step="1" value="0" required></label>
+          <label>Incomplete subjects<input name="incomplete_count" type="number" min="0" step="1" value="0" required></label>
+          <label>Dropped subjects<input name="dropped_count" type="number" min="0" step="1" value="0" required></label>
+          <label class="form-wide">Evidence reference<input name="evidence_reference" type="text" maxlength="500" required placeholder="Reference or secure document link"></label>
+          <p class="form-hint form-wide">Type or choose an active scholarship program from the suggestions. You may change your choice until you submit your first semester record. Use a reference to your supporting grade document; the Registrar remains the source of official grades.</p>
+          <button class="btn btn-primary form-action" type="submit">Submit requirements</button>
+        </form>
+      </section>
+    </section>
+
+    <section class="dashboard-page" data-page="submissions" aria-labelledby="my-submissions-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Records</p><h2 id="my-submissions-heading">My Submissions</h2>
+        <p>Review submitted dates, verification status, evidence, and staff feedback.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div id="scholar-submissions" class="submission-list" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-page" data-page="compliance" aria-labelledby="my-compliance-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Policy status</p><h2 id="my-compliance-heading">My Compliance</h2>
+        <p>See how your verified academic summary compares with the assigned scholarship policy.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div id="scholar-compliance-list" class="submission-list" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-page" data-page="renewal" aria-labelledby="renewal-status-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Scholarship decision</p><h2 id="renewal-status-heading">Renewal Status</h2>
+        <p>View renewal decisions and the staff notes attached to each semester.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div id="scholar-renewal-list" class="submission-list" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-page" data-page="notifications" aria-labelledby="scholar-notifications-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Updates</p><h2 id="scholar-notifications-heading">Notifications</h2>
+        <p>Recent submission, verification, compliance, and renewal activity.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div id="scholar-notifications" class="history-list" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-page" data-page="profile" aria-labelledby="scholar-profile-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Account</p><h2 id="scholar-profile-heading">My Profile</h2>
+        <p>View your account details and assigned scholarship. Password changes use Supabase authentication.</p></div></div>
+      <section class="dashboard-panel">
+        <dl id="scholar-profile-details" class="profile-details"></dl>
+        <form id="scholar-password-form" class="dashboard-form password-form">
+          <label>New password<input name="password" type="password" minlength="8" autocomplete="new-password" required placeholder="At least 8 characters"></label>
+          <label>Confirm new password<input name="password_confirm" type="password" minlength="8" autocomplete="new-password" required placeholder="Re-enter new password"></label>
+          <button class="btn btn-primary form-action" type="submit">Change password</button>
+        </form>
+      </section>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

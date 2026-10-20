@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff Portal | Scholarship Compliance System</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="dashboard-shell" data-role="staff">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">Scholarship Compliance System</p>
+        <h1>Staff Portal</h1>
+        <p class="dashboard-subtitle" id="welcome-message">Manage scholars and scholarship compliance</p>
+      </div>
+      <button class="btn btn-outline signout-button" type="button" data-signout>Sign out</button>
+    </header>
+
+    <nav class="dashboard-nav" aria-label="Staff pages">
+      <a href="?page=dashboard" data-page-link="dashboard">Dashboard</a>
+      <a href="?page=scholars" data-page-link="scholars">Scholars</a>
+      <a href="?page=verification" data-page-link="verification">Verification</a>
+      <a href="?page=compliance" data-page-link="compliance">Compliance</a>
+      <a href="?page=renewals" data-page-link="renewals">Renewals</a>
+      <a href="?page=reports" data-page-link="reports">Reports</a>
+      <a href="?page=notifications" data-page-link="notifications">Notifications</a>
+      <a href="?page=profile" data-page-link="profile">My Profile</a>
+    </nav>
+
+    <p id="dashboard-message" class="dashboard-message" role="status" aria-live="polite"></p>
+
+    <section class="dashboard-page" data-page="dashboard" aria-labelledby="dashboard-heading">
+      <div class="dashboard-page-heading">
+        <div><p class="eyebrow">Overview</p><h2 id="dashboard-heading">Dashboard</h2>
+          <p>Scholarship activity for the selected academic year and semester.</p></div>
+        <div class="semester-picker">
+          <label>Academic year<input id="filter-year" type="text" maxlength="20" value="2026-2027"></label>
+          <label>Semester<select id="filter-semester"><option value="1">Semester 1</option><option value="2">Semester 2</option><option value="3">Summer</option></select></label>
+        </div>
+      </div>
+      <div class="metric-grid">
+        <article class="metric-card"><span>Total scholars</span><strong id="metric-assigned">—</strong></article>
+        <article class="metric-card"><span>Pending submissions</span><strong id="metric-pending">—</strong></article>
+        <article class="metric-card"><span>Verified submissions</span><strong id="metric-verified">—</strong></article>
+        <article class="metric-card"><span>Scholars with deficiencies</span><strong id="metric-deficiency">—</strong></article>
+        <article class="metric-card"><span>Renewals awaiting decision</span><strong id="metric-renewals">—</strong></article>
+      </div>
+      <article class="dashboard-panel">
+        <div class="panel-heading"><div><h2>Quick actions</h2><p>Go directly to the next part of your workflow.</p></div></div>
+        <div class="quick-links">
+          <a class="quick-link" href="?page=verification"><strong>Review submissions</strong><span>Verify evidence or return it with feedback.</span></a>
+          <a class="quick-link" href="?page=compliance"><strong>Evaluate compliance</strong><span>Apply each scholar’s assigned policy.</span></a>
+          <a class="quick-link" href="?page=renewals"><strong>Make renewal decisions</strong><span>Approve compliant records or place them on hold.</span></a>
+        </div>
+      </article>
+    </section>
+
+    <section class="dashboard-page" data-page="scholars" aria-labelledby="scholars-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Management</p><h2 id="scholars-heading">Scholars</h2>
+        <p>View scholar profiles and assign a scholarship program. Auth users must already exist in Supabase.</p></div></div>
+      <section class="dashboard-panel">
+        <div class="panel-heading"><div><h2>Register or assign a scholar</h2><p>Enter the user’s Auth UID, profile information, and scholarship program.</p></div></div>
+        <form id="assignment-form" class="dashboard-form">
+          <label>Scholar Auth UID<input name="scholar_id" type="text" required pattern="[0-9a-fA-F-]{36}" placeholder="UUID from Authentication → Users"></label>
+          <label>Email<input name="email" type="email" required placeholder="scholar@example.com"></label>
+          <label>Student ID<input name="student_id" type="text" maxlength="80" required placeholder="Student ID"></label>
+          <label>Full name<input name="full_name" type="text" maxlength="160" required placeholder="Scholar name"></label>
+          <label>Scholarship program<select name="program_id" id="program-select" required><option value="">Loading programs...</option></select></label>
+          <button class="btn btn-primary form-action" type="submit">Save assignment</button>
+        </form>
+      </section>
+      <section class="dashboard-panel">
+        <div class="panel-heading"><div><h2>Scholar directory</h2><p>Search by scholar name or student ID using the filters above.</p></div><button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+        <div class="filter-bar">
+          <label>Search scholar<input type="search" data-search placeholder="Name or student ID"></label>
+          <label>Program<select data-program-filter><option value="">All programs</option></select></label>
+        </div>
+        <div id="scholar-directory" class="submission-list" aria-live="polite"></div>
+      </section>
+    </section>
+
+    <section class="dashboard-page" data-page="verification" aria-labelledby="verification-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Review workflow</p><h2 id="verification-heading">Submission Verification</h2>
+        <p>Review scholar-provided academic summaries and evidence references. Return incomplete submissions with a reason.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div class="filter-bar">
+        <label>Search scholar<input type="search" data-search placeholder="Name or student ID"></label>
+        <label>Program<select data-program-filter><option value="">All programs</option></select></label>
+        <label>Verification<select data-verification-filter><option value="">All statuses</option><option value="pending">Pending</option><option value="verified">Verified</option><option value="returned">Returned</option></select></label>
+      </div>
+      <div id="staff-verification-list" class="submission-list" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-page" data-page="compliance" aria-labelledby="compliance-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Policy review</p><h2 id="compliance-heading">Compliance Evaluation</h2>
+        <p>Evaluate verified evidence against the scholar’s persisted policy thresholds.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div class="filter-bar">
+        <label>Search scholar<input type="search" data-search placeholder="Name or student ID"></label>
+        <label>Program<select data-program-filter><option value="">All programs</option></select></label>
+        <label>Compliance<select data-compliance-filter><option value="">All results</option><option value="pending">Awaiting evaluation</option><option value="compliant">Compliant</option><option value="with_deficiency">With deficiency</option></select></label>
+      </div>
+      <div id="staff-compliance-list" class="submission-list" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-page" data-page="renewals" aria-labelledby="renewals-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Decision workflow</p><h2 id="renewals-heading">Renewal Decisions</h2>
+        <p>Record an explicit approval or hold with a decision note. Approval requires a compliant evaluation.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div class="filter-bar">
+        <label>Search scholar<input type="search" data-search placeholder="Name or student ID"></label>
+        <label>Program<select data-program-filter><option value="">All programs</option></select></label>
+        <label>Decision<select data-renewal-filter><option value="">All decisions</option><option value="pending">Awaiting decision</option><option value="approved">Approved</option><option value="held">Held</option></select></label>
+      </div>
+      <div id="staff-renewal-list" class="submission-list" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-page" data-page="reports" aria-labelledby="reports-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Exports</p><h2 id="reports-heading">Reports</h2>
+        <p>Download a CSV report for the selected semester. Report data is generated from saved submissions.</p></div></div>
+      <section class="dashboard-panel">
+        <div class="semester-picker report-period">
+          <label>Academic year<input type="text" maxlength="20" data-report-year value="2026-2027"></label>
+          <label>Semester<select data-report-semester><option value="1">Semester 1</option><option value="2">Semester 2</option><option value="3">Summer</option></select></label>
+        </div>
+        <div class="report-grid">
+          <button class="report-card" type="button" data-report="all"><strong>All submissions</strong><span>Export scholar, program, summary, and status.</span></button>
+          <button class="report-card" type="button" data-report="compliant"><strong>Compliant scholars</strong><span>Export evaluated submissions with no deficiencies.</span></button>
+          <button class="report-card" type="button" data-report="with_deficiency"><strong>Scholars with deficiencies</strong><span>Export deficiency results and reasons.</span></button>
+          <button class="report-card" type="button" data-report="pending"><strong>Pending submissions</strong><span>Export records awaiting verification.</span></button>
+          <button class="report-card" type="button" data-report="renewals"><strong>Renewal decisions</strong><span>Export renewal statuses and staff notes.</span></button>
+        </div>
+      </section>
+    </section>
+
+    <section class="dashboard-page" data-page="notifications" aria-labelledby="notifications-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Activity</p><h2 id="notifications-heading">Notifications</h2>
+        <p>Recent submissions, verification updates, compliance evaluations, and renewal decisions.</p></div>
+        <button class="btn btn-outline compact-button" type="button" data-refresh>Refresh</button></div>
+      <div id="staff-notifications" class="history-list" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-page" data-page="profile" aria-labelledby="staff-profile-heading" hidden>
+      <div class="dashboard-page-heading"><div><p class="eyebrow">Account</p><h2 id="staff-profile-heading">My Profile</h2>
+        <p>Review your staff account. Change your password through Supabase authentication.</p></div></div>
+      <section class="dashboard-panel">
+        <dl id="staff-profile-details" class="profile-details"></dl>
+        <form id="staff-password-form" class="dashboard-form password-form">
+          <label>New password<input name="password" type="password" minlength="8" autocomplete="new-password" required placeholder="At least 8 characters"></label>
+          <label>Confirm new password<input name="password_confirm" type="password" minlength="8" autocomplete="new-password" required placeholder="Re-enter new password"></label>
+          <button class="btn btn-primary form-action" type="submit">Change password</button>
+        </form>
+      </section>
+    </section>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
